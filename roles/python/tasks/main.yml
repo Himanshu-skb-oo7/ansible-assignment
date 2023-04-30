@@ -1,0 +1,33 @@
+- name: Install all required dependencies
+  apt: name={{ item }} state=present update_cache=true
+  become: true
+  with_items:
+    - python
+    - python3-setuptools
+    - python-dev
+    - build-essential
+    - python3-pip
+    - python3-mysqldb
+
+- name: Install and upgrade pip
+  pip:
+    name: pip
+    extra_args: --upgrade
+    executable: pip3
+
+- name: Install pip dependencies
+  become: true
+  pip: name={{ item }} state=present
+  with_items:
+    - pymysql
+
+- name: Install basic software
+  apt:
+    name: "{{ packages }}"
+    update_cache: yes
+    cache_valid_time: 3600
+    install_recommends: no
+  vars:
+    packages:
+      - git
+  become: true

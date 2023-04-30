@@ -1,0 +1,9 @@
+- name: Install Python Flask dependencies
+  become: true
+  pip:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - flask
+    - mysql
+    - mysql-connector-python

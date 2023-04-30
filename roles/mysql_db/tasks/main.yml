@@ -1,0 +1,68 @@
+- name: Install MySQL database
+  apt: name={{ item }} state=present
+  become: true
+  with_items:
+    - mysql-common
+    - default-mysql-server
+    - default-mysql-client
+
+- name: Update MySQL Configuration file to accept connections from all interfaces
+  become: true
+  ini_file:
+    path: /etc/mysql/my.cnf
+    section: mysqld
+    option: bind-address
+    value: 0.0.0.0
+
+- name: Set password for root user
+  become: true
+  mysql_user:
+    name: "root"
+    password: "{{ db_password }}"
+    priv: "*.*:ALL,GRANT"
+    host: "localhost"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: present
+
+- name: create MySQL configuration file for root
+  become: true
+  copy:
+    content: |
+      [client]
+      user=root
+      password="{{ db_password }}"
+    dest: "/root/.my.cnf"
+
+- name: Start MySQL Service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Create Application Database
+  become: true
+  mysql_db: name={{ db_name }} state=present
+
+- name: Cretae Database user
+  become: true
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "*.*:ALL"
+    state: present
+    host: "%"
+
+- name: create MySQL configuration file
+  copy:
+    content: |
+      [client]
+      user="{{ db_user }}"
+      password="{{ db_password }}"
+    dest: "/home/{{ ansible_user }}//.my.cnf"
+
+- name: Re-start MySQL Service
+  become: true
+  service:
+    name: mysql
+    state: restarted
+    enabled: yes

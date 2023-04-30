@@ -1,0 +1,9 @@
+- name: Copy source code
+  become: true
+  git:
+    repo: "https://github.com/Himanshu-skb-oo7/simple-webapp"
+    dest: "{{ app_directory }}"
+
+- name: Start Web Server
+  become: true
+  shell: MYSQL_DATABASE_HOST={{ hostvars[groups['db_servers'][0]]['private_ip'] }} FLASK_APP={{ app_directory }}/app.py nohup flask run --host=0.0.0.0 --port=80 &
