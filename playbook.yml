@@ -10,3 +10,9 @@
     - python
     - flask
     - app
+
+- name: Create and configure load load_balancer_arn
+  hosts: localhost
+  connection: local
+  roles:
+    - load_balancer

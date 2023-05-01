@@ -43,7 +43,7 @@
   become: true
   mysql_db: name={{ db_name }} state=present
 
-- name: Cretae Database user
+- name: Create Database user
   become: true
   mysql_user:
     name: "{{ db_user }}"
@@ -52,7 +52,7 @@
     state: present
     host: "%"
 
-- name: create MySQL configuration file
+- name: Create MySQL configuration file
   copy:
     content: |
       [client]

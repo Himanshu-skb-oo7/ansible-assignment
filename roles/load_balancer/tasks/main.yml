@@ -1,0 +1,41 @@
+- name: Get all private ips of web servers
+  set_fact:
+    private_ip_web_servers: "{{  groups['web_servers'] | map('extract', hostvars) | list | json_query('[].{Id: private_ip}') }}"
+
+- name: Add Port key to list of dicts
+  set_fact:
+    private_ip_web_servers: "{{ private_ip_web_servers | map('combine', {'Port': 80}) | list }}"
+  with_items: "{{private_ip_web_servers}}"
+
+- name: Create Target Group
+  elb_target_group:
+    name: target-group
+    protocol: http
+    port: 80
+    vpc_id: vpc-07fffdbbf093e2d34
+    region: "{{ region }}"
+    health_check_path: /
+    health_check_protocol: "http"
+    successful_response_codes: "200,250-260"
+    target_type: ip
+    targets: "{{ private_ip_web_servers }}"
+    state: present
+
+- name: "Create ALB"
+  become: false
+  elb_application_lb:
+    name: "custom-alb"
+    security_groups:
+      - "{{ security_group_id }}"
+    region: "{{ region }}"
+    subnets:
+      - subnet-0a99b1af477df6a00
+      - subnet-0922aab0f939faa50
+    listeners:
+      - Protocol: HTTP
+        Port: 80
+        DefaultActions:
+          - Type: forward
+            TargetGroupName: target-group
+    state: present
+  delegate_to: localhost
